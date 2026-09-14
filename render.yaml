@@ -1,0 +1,30 @@
+# Configuración del servicio en Render (Blueprint).
+#
+# Si conectás el repo desde el panel de Render como "Blueprint", toma este
+# archivo y crea el servicio solo. Si lo creás a mano como "Web Service",
+# este archivo no molesta: solo copiá de acá los comandos de build y start.
+#
+# MONGODB_URI tiene sync:false porque es un secreto: Render te lo va a
+# pedir en el panel en vez de guardarlo en el repo.
+services:
+  - type: web
+    name: mis-guardias-backend
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      # Vacío = la API acepta cualquier origen. Está bien porque la usa
+      # una app nativa, que no manda header Origin.
+      - key: CORS_ORIGINS
+        value: ''
