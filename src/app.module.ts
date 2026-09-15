@@ -6,6 +6,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ShiftsModule } from './shifts/shifts.module';
+import { SwapsModule } from './swaps/swaps.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -26,8 +27,8 @@ import { HealthController } from './health/health.controller';
     AuthModule,
     UsersModule,
     ShiftsModule,
-    // Los modulos de intercambios, tarifas y resumen se suman en los
-    // proximos pasos.
+    SwapsModule,
+    // Los modulos de tarifas y resumen se suman en el proximo paso.
   ],
   controllers: [HealthController],
 })
