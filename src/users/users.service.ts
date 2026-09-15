@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 /** Como devolvemos un usuario a la app (sin el hash de la contrasena). */
 export interface UsuarioPublico {
@@ -20,6 +21,7 @@ export interface UsuarioPublico {
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /** Saca los campos sensibles antes de mandar el usuario a la app. */
@@ -124,9 +126,23 @@ export class UsersService {
    */
   async updateRole(id: string, role: string): Promise<UsuarioPublico> {
     const user = await this.findById(id);
+    const estabaPendiente = user.role === 'none';
+
     user.role = role;
     user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
+
+    // Si lo acaban de habilitar, le avisamos: puede estar esperando hace
+    // rato en la pantalla de "esperando aprobación".
+    if (estabaPendiente && role !== 'none') {
+      await this.notifications.sendToUser(
+        user._id,
+        'Ya podés entrar',
+        'Un administrador aprobó tu cuenta. Volvé a iniciar sesión.',
+        { type: 'account-approved' },
+      );
+    }
+
     return this.toPublic(user);
   }
 

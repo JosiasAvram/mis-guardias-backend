@@ -9,6 +9,7 @@ import { ShiftsModule } from './shifts/shifts.module';
 import { SwapsModule } from './swaps/swaps.module';
 import { RatesModule } from './rates/rates.module';
 import { SummaryModule } from './summary/summary.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -32,6 +33,7 @@ import { HealthController } from './health/health.controller';
     SwapsModule,
     RatesModule,
     SummaryModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
 })

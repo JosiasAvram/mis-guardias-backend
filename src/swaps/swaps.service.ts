@@ -12,6 +12,7 @@ import { Shift, ShiftDocument } from '../shifts/schemas/shift.schema';
 import { CreateSwapDto } from './dto/create-swap.dto';
 import { QuerySwapsDto } from './dto/query-swaps.dto';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 /** Resumen de una guardia dentro de una solicitud. */
 export interface GuardiaResumen {
@@ -47,6 +48,7 @@ export class SwapsService {
     @InjectModel(Shift.name)
     private readonly shiftModel: Model<ShiftDocument>,
     private readonly usersService: UsersService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private resumir(shift: any): GuardiaResumen | null {
@@ -156,7 +158,18 @@ export class SwapsService {
       message: dto.message?.trim(),
     });
 
-    return this.armarPublica(creada, userId);
+    const publica = await this.armarPublica(creada, userId);
+
+    // Aviso al compañero. Si las push fallan no pasa nada: el servicio
+    // ya se traga los errores y la solicitud queda igual.
+    await this.notifications.sendToUser(
+      destinatario,
+      ajena ? 'Te proponen un cambio de guardia' : 'Te quieren pasar una guardia',
+      `${publica.fromUserName} ${ajena ? 'quiere cambiarte una guardia' : 'te quiere pasar una guardia'}`,
+      { type: 'swap-request', swapId: publica.id },
+    );
+
+    return publica;
   }
 
   private async armarPublica(
@@ -303,7 +316,15 @@ export class SwapsService {
       { $set: { status: 'cancelled', respondedAt: new Date() } },
     );
 
-    return this.armarPublica(solicitud, userId);
+    const publica = await this.armarPublica(solicitud, userId);
+    await this.notifications.sendToUser(
+      emisor,
+      'Te aceptaron el cambio',
+      `${publica.toUserName} aceptó. Ya está actualizado en tu calendario.`,
+      { type: 'swap-accepted', swapId: publica.id },
+    );
+
+    return publica;
   }
 
   async reject(userId: string, id: string): Promise<SolicitudPublica> {
@@ -314,7 +335,15 @@ export class SwapsService {
     solicitud.status = 'rejected';
     solicitud.respondedAt = new Date();
     await solicitud.save();
-    return this.armarPublica(solicitud, userId);
+
+    const publica = await this.armarPublica(solicitud, userId);
+    await this.notifications.sendToUser(
+      solicitud.fromUserId,
+      'Rechazaron tu solicitud',
+      `${publica.toUserName} no puede hacer ese cambio.`,
+      { type: 'swap-rejected', swapId: publica.id },
+    );
+    return publica;
   }
 
   /** Cancelar: solo la puede cancelar quien la mandó. */

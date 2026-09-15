@@ -6,6 +6,7 @@ import { SwapsService } from './swaps.service';
 import { SwapsController } from './swaps.controller';
 import { ShiftsModule } from '../shifts/shifts.module';
 import { UsersModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UsersModule } from '../users/users.module';
     // al modelo de Shift sin volver a registrarlo.
     ShiftsModule,
     UsersModule,
+    NotificationsModule,
   ],
   controllers: [SwapsController],
   providers: [SwapsService],
