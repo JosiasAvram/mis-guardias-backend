@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { SwapsModule } from './swaps/swaps.module';
+import { RatesModule } from './rates/rates.module';
+import { SummaryModule } from './summary/summary.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -28,7 +30,8 @@ import { HealthController } from './health/health.controller';
     UsersModule,
     ShiftsModule,
     SwapsModule,
-    // Los modulos de tarifas y resumen se suman en el proximo paso.
+    RatesModule,
+    SummaryModule,
   ],
   controllers: [HealthController],
 })
